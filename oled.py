@@ -1,73 +1,106 @@
 # Run with:
 # $ podman run --platform linux/amd64 --rm -it -v $PWD:/remote micropython/unix micropython /remote/oled.py
 
+# The ssd1306 driver uses MONO_VLSB. We should focus on this for now.
+# https://docs.micropython.org/en/latest/esp8266/tutorial/ssd1306.html#using-a-ssd1306-oled-display
+
 import sys
 from binascii import b2a_base64
 import framebuf
 
-BPP = 3  # BYTES per pixel
 
-
-def serialize_gr_command(payload, cmd):
+# write a kitty graphics protocol command to stdout
+def kitty_gr_write_cmd(payload, cmd):
     cmd = ",".join(f"{k}={v}" for k, v in cmd.items())
-    ans = []
-    w = ans.append
-    w(b"\033_G"), w(cmd.encode("ascii"))
-    if payload:
-        w(b";")
-        w(payload)
-    w(b"\033\\")
-    return b"".join(ans)
+    for cmd in (
+        b"\033_G",
+        cmd.encode("ascii"),
+        b";",
+        payload,
+        b"\033\\",
+    ):
+        sys.stdout.buffer.write(cmd)
+
+    sys.stdout.flush()
 
 
-# image width & height in pixels
-W = 128
-H = 32
+# display a bitmap (24bit RGB) data to the terminal.
+def kitty_gr_display_bitmap(buf, w, h, chunk_size=4096):
+    """
+    Args:
+        chunk_size: chunk size used to transmit the data to kitty. Kitty accepts max 4096. Default: 4096.
+    """
 
-
-def display_buf(buf, w, h):
+    # c/r: number of columns & rows for the image.
+    # TODO: Q: how is this different from W/H? A: W/H are in pixels. C/R are term columns/rows.
+    # TODO: Q: what does 'r' default to? based on aspect-ratio from w/h?
+    n_cols = 32
     data = b2a_base64(buf)
-    args = {"a": "T", "f": BPP * 8, "s": w, "v": h, "c": 16, "X": 30, "Y": 20}
-    BUFSIZE = 16  # kitty accepts max 4096
+    args = {
+        "a": "T",  # action: [T]ransmit and display image
+        "C": 1,  # don't move cursor # TODO: not ideal. Should use "animation" instead.
+        "f": 24,  # we use kitty's 24bit RGB bitmap support
+        # width & height of bitmap, in pixels
+        "s": w,
+        "v": h,
+        # dimension of the printed image
+        # (terminal units)
+        "c": n_cols,
+    }
     while data:
-        chunk, data = data[:BUFSIZE], data[BUFSIZE:]
+        chunk, data = data[:chunk_size], data[chunk_size:]
         args.update({"m": 1 if data else 0})  # 0 iff it's the last chunk
-        sys.stdout.buffer.write(serialize_gr_command(chunk, args))
-        sys.stdout.flush()
+        kitty_gr_write_cmd(chunk, args)
+        # sys.stdout.buffer.write()
+        # sys.stdout.flush()
         args.clear()  # args must be printed once (except for m)
 
 
-def display_framebuf(fbuf_buf):
-    # buffer holding the image data in RGB (24 = 3 * 8)
-    buf = bytearray(W * H * BPP)
-    for i in range(0, len(buf) // BPP):
-        # convert to row & col
-        row = i // W
-        col = i % W
-        is_edge = row == 0 or row == H - 1 or col == 0 or col == W - 1  # draw a border
+class TermFrameBuf(framebuf.FrameBuffer):
+    def __init__(self, width, height):
+        # width & height in (monochrome) pixels
+        self.width = width
+        self.height = height
 
-        # compute the page (i.e. byte) index
-        page_ix = row // 8 * W + col % W
+        # buffer used by framebuf
+        # 1 byte = 8 vertical pixels
+        # 1 page = 1 column
+        # https://docs.micropython.org/en/latest/library/framebuf.html#framebuf.framebuf.MONO_VLSB
+        self.pages = self.height // 8
+        self.buffer = bytearray(self.pages * self.width)
+        super().__init__(self.buffer, self.width, self.height, framebuf.MONO_VLSB)
 
-        # figure out if the pixel (bit) is on by indexing into the page
-        pixel_on = bool(fbuf_buf[page_ix] & 0b00000001 << row % 8)
-        buf[i * BPP + 0] = 255 if not pixel_on and is_edge else 0
-        buf[i * BPP + 1] = 255 if is_edge or pixel_on else 0
-        buf[i * BPP + 2] = 255 if is_edge or pixel_on else 0
+        # bitmap we'll eventually render to
+        self.BPP = 3  # bytes per pixels in bitmap (one for R, one for G, one for B)
+        self.bitmap = bytearray(self.width * self.height * self.BPP)
 
-    display_buf(buf, W, H)
-    print("\n")
+    def show(self):
+        for pixel_ix in range(0, self.width * self.height):
+            # convert to row & col
+            row = pixel_ix // self.width
+            col = pixel_ix % self.width
+
+            # compute the page (i.e. byte) index
+            page_ix = row // 8 * self.width + col % self.width
+
+            # figure out if the pixel (bit) is on by indexing into the page
+            pixel_on = bool(self.buffer[page_ix] & 0b00000001 << row % 8)
+            if pixel_on:
+                # set pixel to cyan
+                self.bitmap[pixel_ix * self.BPP + 0] = 000
+                self.bitmap[pixel_ix * self.BPP + 1] = 255
+                self.bitmap[pixel_ix * self.BPP + 2] = 255
+
+        kitty_gr_display_bitmap(self.bitmap, self.width, self.height)
 
 
-canvas_buffer = bytearray(H // 8 * W)
-canvas = framebuf.FrameBuffer(canvas_buffer, W, H, framebuf.MONO_VLSB)
+# mimick a 0.91" 128x32 monochrome OLED
+oled = TermFrameBuf(128, 32)
 
-def render():
-    display_framebuf(canvas_buffer)
+oled.fill(0)
+oled.text("Roses are red,", 0, 0)
+oled.text("  Violets R blu,", 0, 8)
+oled.text("  I love Kitty,", 0, 16)
+oled.text("  & U will too.", 0, 24)
 
-canvas.fill(0)
-canvas.text("Roses are red,", 0, 0)
-canvas.text("  Violets R blu,", 0, 8)
-canvas.text("  I love Kitty,", 0, 16)
-canvas.text("  & U will too.", 0, 24)
-render()
+oled.show()
