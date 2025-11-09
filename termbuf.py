@@ -1,14 +1,7 @@
-# Run with:
-# $ podman run --platform linux/amd64 --rm -it -v $PWD:/remote micropython/unix micropython /remote/oled.py
-
-# The ssd1306 driver uses MONO_VLSB. We should focus on this for now.
-# https://docs.micropython.org/en/latest/esp8266/tutorial/ssd1306.html#using-a-ssd1306-oled-display
-
 import sys
 from binascii import b2a_base64
 import framebuf
 import random
-import time
 
 
 # write a kitty graphics protocol command to stdout
@@ -129,22 +122,3 @@ class TermBuffer(framebuf.FrameBuffer):
             self.bitmap[pixel_ix * self.BPP + 2] = c[2]
 
         kgp_image_frame(self.bitmap, self.width, self.height, image_id=self.image_id)
-
-
-# mimick a 0.91" 128x32 monochrome OLED
-oled = TermBuffer(128, 32)
-
-print()
-print("oled ready", end="")
-
-i = 0
-while True:
-    time.sleep(1)
-    oled.fill(0)
-    oled.text("Roses are red,", 0, 0)
-    oled.text("  Violets R blu,", 0, 8)
-    oled.text("  I love Kitty,", 0, 16)
-    oled.text(f"{i} & U will too.", 0, 24)
-    oled.show()
-    print(".", end="")
-    i = i + 1

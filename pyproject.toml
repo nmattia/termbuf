@@ -1,5 +1,5 @@
 [tool.mypy]
-files=["oled.py"]
+files=["termbuf.py"]
 python_version = "3.12" # micropython is ~3.5 but mypy doesn't support that
 strict_equality = true
 
@@ -21,4 +21,4 @@ check_untyped_defs = true
 # ignore_missing_imports = true
 
 [tool.ruff]
-include = [ "oled.py"]
+include = [ "termbuf.py"]
