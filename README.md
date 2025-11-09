@@ -96,7 +96,7 @@ else:
     from ssd1306 import SSD1306_I2C
     from machine import Pin, I2C
     i2c = I2C(1, scl=Pin(7, Pin.OUT), sda=Pin(6, Pin.OUT), freq=400000)
-    oled = SSD1306_I2C(128, 32, i2c)
+    oled = SSD1306_I2C(W, H, i2c)
 
 oled.fill(0)
 oled.text("hello, world", 0, 8)
