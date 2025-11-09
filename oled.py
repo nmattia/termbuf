@@ -79,7 +79,7 @@ def kgp_image_frame(buf, w, h, image_id, chunk_size=4096):
         args.clear()  # args must be printed once (except for m)
 
 
-class TermFrameBuf(framebuf.FrameBuffer):
+class TermBuffer(framebuf.FrameBuffer):
     def __init__(self, width, height):
         """Creates a kitty graphics protocol image that can be updated with .show().
 
@@ -132,7 +132,7 @@ class TermFrameBuf(framebuf.FrameBuffer):
 
 
 # mimick a 0.91" 128x32 monochrome OLED
-oled = TermFrameBuf(128, 32)
+oled = TermBuffer(128, 32)
 
 print()
 print("oled ready", end="")
