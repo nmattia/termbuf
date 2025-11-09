@@ -18,5 +18,5 @@ mypy
 Run the example:
 
 ```bash
-podman run --platform linux/amd64 --rm -it -v "$PWD":/remote micropython/unix micropython /remote/oled.py
+podman run --platform linux/amd64 --rm -it -v "$PWD":/remote micropython/unix micropython /remote/example.py
 ```
