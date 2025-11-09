@@ -2,6 +2,7 @@
 
 MicroPython library for displaying OLED graphics in the terminal using the Kitty Graphics Protocol.
 
+The library provides the same interface as eg the [`ssd1306` micropython driver](https://github.com/stlehmann/micropython-ssd1306), meaning the same code can be used in both to output to the terminal or to a real OLED display.
 
 ## Getting Started
 
