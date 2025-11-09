@@ -88,7 +88,7 @@ import sys
 W = 128
 H = 32
 
-if sys.implementation._machine.startswith('linux'):
+if sys.platform == 'linux':
     # if this is the unix port, use `termbuf`
     oled = termbuf.TermBuffer(W, H)
 else:
