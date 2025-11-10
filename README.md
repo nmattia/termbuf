@@ -2,6 +2,8 @@
 
 MicroPython library for displaying OLED graphics in the terminal using the Kitty Graphics Protocol.
 
+![Terminal text showing a poem](./docs/images/roses-are-red.mov)
+
 The library can be used to speed up graphics development (faster feedback) and provides the same interface as eg the [`ssd1306` micropython driver](https://github.com/stlehmann/micropython-ssd1306), meaning the same code can be used in both to output to the terminal or to a real OLED display.
 
 See [Getting Started](#getting-started) for a quick introduction and see the [examples](#examples) below for some real-world use cases.
