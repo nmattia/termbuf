@@ -97,7 +97,9 @@ class TermBuffer(framebuf.FrameBuffer):
 
         # random id to avoid collisions with other potential images, see [i]:
         # https://sw.kovidgoyal.net/kitty/graphics-protocol/#control-data-reference
-        self.image_id = random.randint(0, 4294967294)
+        self.image_id = random.randint(
+            0, 4096
+        )  # use some big-ish value but that still fits on most boards
 
         # create an empty image (will already allocate space in term)
         kgp_image_transmit(self.bitmap, self.width, self.height, image_id=self.image_id)
