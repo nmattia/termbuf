@@ -25,7 +25,7 @@ mip.install("github:nmattia/termbuf")
 
 > [!NOTE]
 >
-> Some versions of MicroPython might not support `github:`. If you encounter an error, try installing from a URL: `mip.install("https://raw.githubusercontent.com/nmattia/termbuf/refs/heads/main/termbuf.py")` in MicroPython REPL or `mpremote mip install 'https://raw.githubusercontent.com/nmattia/termbuf/refs/heads/main/termbuf.py'` from the command line.
+> Some versions of MicroPython might not support `github:`. If you encounter an error, try installing from a URL: `mip.install("https://raw.githubusercontent.com/nmattia/termbuf/refs/heads/main/termbuf.py")` in MicroPython REPL. Do note that `termbuf` is designed to work on the unix port of MicroPython and is not guaranteed to work when running on a board.
 
 You can then display OLED data in your terminal (you can use `Ctrl+E` to enter MicroPython "paste mode"):
 
