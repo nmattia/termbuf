@@ -23,6 +23,10 @@ import mip
 mip.install("github:nmattia/termbuf")
 ```
 
+> [!NOTE]
+>
+> Some versions of MicroPython might not support `github:`. If you encounter an error, try installing from a URL: `mip.install("https://raw.githubusercontent.com/nmattia/termbuf/refs/heads/main/termbuf.py")` in MicroPython REPL or `mpremote mip install 'https://raw.githubusercontent.com/nmattia/termbuf/refs/heads/main/termbuf.py'` from the command line.
+
 You can then display OLED data in your terminal (you can use `Ctrl+E` to enter MicroPython "paste mode"):
 
 ```python
