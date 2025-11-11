@@ -1,7 +1,6 @@
 import sys
 from binascii import b2a_base64
 import framebuf
-import random
 
 
 # write a kitty graphics protocol command to stdout
@@ -73,11 +72,15 @@ def kgp_image_frame(buf, w, h, image_id, chunk_size=4096):
 
 
 class TermBuffer(framebuf.FrameBuffer):
-    def __init__(self, width, height):
+    def __init__(self, width, height, image_id=9876):
         """Creates a kitty graphics protocol image that can be updated with .show().
 
         Note: the image is never deleted.
+
+        Args:
+            image_id: Image ID for graphics protocol: https://sw.kovidgoyal.net/kitty/graphics-protocol/#control-data-reference. Set this if you have more than one image in the terminal. Default: 9876.
         """
+        self.image_id = image_id
 
         # width & height in (monochrome) pixels
         self.width = width
@@ -94,12 +97,6 @@ class TermBuffer(framebuf.FrameBuffer):
         # bitmap we'll eventually render to
         self.BPP = 3  # bytes per pixels in bitmap (one for R, one for G, one for B)
         self.bitmap = bytearray(self.width * self.height * self.BPP)
-
-        # random id to avoid collisions with other potential images, see [i]:
-        # https://sw.kovidgoyal.net/kitty/graphics-protocol/#control-data-reference
-        self.image_id = random.randint(
-            0, 4096
-        )  # use some big-ish value but that still fits on most boards
 
         # create an empty image (will already allocate space in term)
         kgp_image_transmit(self.bitmap, self.width, self.height, image_id=self.image_id)
