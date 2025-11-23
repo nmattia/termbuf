@@ -14,9 +14,16 @@ ruff check
 mypy
 ```
 
+Run micropython in a container:
+
+```
+podman run --platform linux/amd64 --rm -it -v "$PWD":/remote -w /remote micropython/unix
+```
+
+This mounts the source to `/remote` and starts micropython in `/remote`.
 
 Run the example:
 
 ```bash
-podman run --platform linux/amd64 --rm -it -v "$PWD":/remote micropython/unix micropython /remote/example.py
+podman run --platform linux/amd64 --rm -it -v "$PWD":/remote -w /remote micropython/unix micropython -m example
 ```
