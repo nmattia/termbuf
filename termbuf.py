@@ -6,14 +6,14 @@ import framebuf
 # write a kitty graphics protocol command to stdout
 def kitty_gr_write_cmd(payload, cmd):
     cmd = ",".join(f"{k}={v}" for k, v in cmd.items())
-    for cmd in (
+    for part in (
         b"\033_G",
         cmd.encode("ascii"),
         b";",
         payload,
         b"\033\\",
     ):
-        sys.stdout.buffer.write(cmd)
+        sys.stdout.buffer.write(part)
 
     sys.stdout.flush()
 
