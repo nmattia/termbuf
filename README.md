@@ -88,13 +88,13 @@ while True:
 It is possible to use a different driver (eg actual I2C OLED vs terminal) depending on the port:
 
 ```python
-import termbuf
 import sys
 
 W = 128
 H = 32
 
 if sys.platform == 'linux':
+    import termbuf
     # if this is the unix port, use `termbuf`
     oled = termbuf.TermBuffer(W, H)
 else:
